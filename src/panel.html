@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cerby</title>
+    <style>
+      :root {
+        --border: rgba(0, 0, 0, 0.18);
+        --muted: #5c5c5c;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        box-sizing: border-box;
+        padding: 28px 24px;
+        font: 400 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #1a1a1a;
+        background: #ffffff;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+      p.subtitle {
+        margin: 0 0 24px;
+        color: var(--muted);
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-weight: 500;
+      }
+      input {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 9px 12px;
+        font: inherit;
+        color: inherit;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #ffffff;
+      }
+      input:focus {
+        outline: 2px solid #1a1a1a;
+        outline-offset: -1px;
+      }
+      button {
+        margin-top: 4px;
+        padding: 10px 16px;
+        font: 500 14px/1 inherit;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        background: #1a1a1a;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #333333;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      p.status {
+        margin: 0;
+        min-height: 20px;
+        color: var(--muted);
+      }
+      p.status.error {
+        color: #b3261e;
+      }
+      #site {
+        font-weight: 500;
+        color: #1a1a1a;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sign in</h1>
+    <p class="subtitle">Credentials for <span id="site"></span></p>
+
+    <form id="login-form" novalidate>
+      <label>
+        Email
+        <input id="email" name="email" type="email" autocomplete="username" required />
+      </label>
+      <label>
+        Password
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit">Sign in</button>
+      <p class="status" id="status" role="status"></p>
+    </form>
+    <script src="panel.js"></script>
+  </body>
+</html>
