@@ -1,25 +1,29 @@
+import { RawMutationObserver, addEventListener } from './natives';
+
 /**
- * Calls `cb` after every navigation, including SPA history changes,
- * and whenever the page mutates enough to have dropped our node.
+ * Runs `cb` once `document.body` exists. At document_start the body has not
+ * been parsed yet, so everything that touches it has to wait.
+ */
+export function whenBodyReady(cb: () => void): void {
+  if (document.body) {
+    cb();
+    return;
+  }
+  addEventListener(document, 'DOMContentLoaded', () => cb(), { once: true });
+}
+
+/**
+ * Calls `cb` after navigations and whenever the page mutates enough to have
+ * dropped our node.
+ *
+ * Note: monkey-patching history.pushState would be pointless here — the page's
+ * History object lives in its own world, so our patch would only ever see our
+ * own calls. Events do cross worlds, and the observer catches SPA re-renders.
  */
 export function watchNavigation(cb: () => void): void {
-  const history = window.history;
-  const fire = () => setTimeout(cb, 0);
+  addEventListener(window, 'popstate', () => cb());
+  addEventListener(window, 'pageshow', () => cb());
 
-  for (const name of ['pushState', 'replaceState'] as const) {
-    const original = history[name];
-    history[name] = function (this: History, ...args: Parameters<History['pushState']>) {
-      const result = original.apply(this, args);
-      fire();
-      return result;
-    };
-  }
-
-  window.addEventListener('popstate', fire);
-  window.addEventListener('pageshow', fire);
-
-  const observer = new MutationObserver(() => cb());
-  const start = () => observer.observe(document.body, { childList: true });
-  if (document.body) start();
-  else document.addEventListener('DOMContentLoaded', start, { once: true });
+  const observer = new RawMutationObserver(() => cb());
+  observer.observe(document.body, { childList: true });
 }

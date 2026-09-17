@@ -26,6 +26,7 @@ export async function loadCredentials(site: string): Promise<Credentials | null>
   };
 }
 
+// [NOTE]: Given extra time I would be encrypting these credentials so that, if there were any chance of them being retrieved by outside sources, they wouldn't be worth much
 /** Writes credentials for a site key, replacing anything already there. */
 export async function saveCredentials(
   site: string,

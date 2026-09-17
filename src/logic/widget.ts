@@ -1,4 +1,26 @@
+import {
+  addEventListener,
+  appendChild,
+  attachClosedShadow,
+  createElement,
+  getElementById,
+  removeAttribute,
+  setAttribute,
+  setTextContent,
+} from './natives';
+
 export const ROOT_ID = 'cerby-root';
+
+const HOST_STYLE = [
+  'position: fixed',
+  'top: 16px',
+  'right: 16px',
+  'z-index: 2147483647',
+  'width: auto',
+  'height: auto',
+  'margin: 0',
+  'padding: 0',
+].join(';');
 
 const STYLES = `
   :host { all: initial; }
@@ -31,47 +53,49 @@ const STYLES = `
   iframe[hidden] { display: none; }
 `;
 
-/** Creates the shadow-DOM host element containing the button and its panel iframe. */
+/**
+ * Creates the host element. The shadow root is closed and its handle stays in
+ * this closure, so the page cannot reach the button or the panel iframe through
+ * `.shadowRoot`. Only the empty host div is visible in the light DOM.
+ */
 export function createHost(doc: Document, panelUrl: string): HTMLElement {
-  const host = doc.createElement('div');
-  host.id = ROOT_ID;
-  host.style.cssText = [
-    'position: fixed',
-    'top: 16px',
-    'right: 16px',
-    'z-index: 2147483647',
-    'width: auto',
-    'height: auto',
-    'margin: 0',
-    'padding: 0',
-  ].join(';');
+  const host = createElement(doc, 'div');
+  setAttribute(host, 'id', ROOT_ID);
+  setAttribute(host, 'style', HOST_STYLE);
 
-  const shadow = host.attachShadow({ mode: 'open' });
-  const style = doc.createElement('style');
-  style.textContent = STYLES;
+  const shadow = attachClosedShadow(host);
 
-  const stack = doc.createElement('div');
-  stack.className = 'stack';
+  const style = createElement(doc, 'style');
+  setTextContent(style, STYLES);
 
-  const panel = doc.createElement('iframe');
-  panel.src = panelUrl;
-  panel.hidden = true;
+  const stack = createElement(doc, 'div');
+  setAttribute(stack, 'class', 'stack');
 
-  const button = doc.createElement('button');
-  button.type = 'button';
-  button.textContent = 'Open';
-  button.addEventListener('click', () => {
-    panel.hidden = !panel.hidden;
-    button.textContent = panel.hidden ? 'Open' : 'Close';
+  const panel = createElement(doc, 'iframe');
+  setAttribute(panel, 'src', panelUrl);
+  setAttribute(panel, 'hidden', '');
+
+  const button = createElement(doc, 'button');
+  setAttribute(button, 'type', 'button');
+  setTextContent(button, 'Open');
+
+  let open = false;
+  addEventListener(button, 'click', () => {
+    open = !open;
+    if (open) removeAttribute(panel, 'hidden');
+    else setAttribute(panel, 'hidden', '');
+    setTextContent(button, open ? 'Close' : 'Open');
   });
 
-  stack.append(button, panel);
-  shadow.append(style, stack);
+  appendChild(stack, button);
+  appendChild(stack, panel);
+  appendChild(shadow, style);
+  appendChild(shadow, stack);
   return host;
 }
 
 /** Idempotent: mounts the widget unless it is already present. */
 export function mountWidget(doc: Document, panelUrl: string): void {
-  if (!doc.body || doc.getElementById(ROOT_ID)) return;
-  doc.body.appendChild(createHost(doc, panelUrl));
+  if (!doc.body || getElementById(doc, ROOT_ID)) return;
+  appendChild(doc.body, createHost(doc, panelUrl));
 }

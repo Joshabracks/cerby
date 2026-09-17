@@ -41,6 +41,17 @@ webpack.config.js       entries content + panel, copies manifest + panel.html
 - The panel is an extension page with its own origin, so it cannot read the host URL. The content
   script computes the site key and passes it as `?site=` on the iframe src.
 - Passwords are stored in plaintext in `chrome.storage.local`. Fine for a prototype, not for real use.
+
+## Isolation model
+- **INVARIANT: no credential enters the content script.** Secrets live only in the panel iframe,
+  a separate origin the page cannot read. The content script only computes the site key.
+- Closed shadow root; the handle stays in a module closure, so `#cerby-root.shadowRoot` is null to the page.
+- `run_at: document_start`, `world: ISOLATED`. Natives are cached in `logic/natives.ts` before page
+  scripts run (defense in depth — isolated worlds already have their own prototype chains).
+- `use_dynamic_url: true` on web-accessible resources: the URL is a per-session UUID, so sites
+  cannot fingerprint the extension or pre-target a fixed ID.
+- Known residual risk: the page can still remove, move, or overlay the host element (clickjacking).
+  Only an action popup avoids that.
 - `watchNavigation(cb: () => void): void` — patches `pushState`/`replaceState`, listens `popstate`, plus a MutationObserver fallback.
 
 ## Assumptions
